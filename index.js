@@ -1,11 +1,16 @@
 const express = require('express')
-const app = express()
-app.use(express.json())
-app.use(express.static('dist'))
 const morgan = require('morgan') 
-app.use(morgan('tiny'));
-const cors = require('cors')
-app.use(cors())
+const app = express()
+
+morgan.token('postdetails',  (request, response) => { 
+    const name = request.body?.name || 'unknown';
+    const number = request.body?.number || 'unknown';
+    return `${name} ${number}`;
+  });
+
+app.use(
+    morgan(':postdetails :method :url :status :res[content-length] :response-time ms')
+);
 
 let persons = [
     { 
@@ -34,7 +39,7 @@ app.get('/', (request, response) => {
     response.send('<h1>Hello World!</h1>')
   })
 
-app.get('/info',(request,response)=> {
+/*app.get('/info',(request,response)=> {
     const timestamp = new Date();
     response.send(`
         <p>Phonebook has info for ${persons.length} people. </p>
@@ -42,7 +47,10 @@ app.get('/info',(request,response)=> {
     `);
 
     
-})
+})*/
+
+app.use(express.static('dist'))
+app.use(express.json())
 
 app.get('/api/persons',(request,response) => {
     response.json(persons)
@@ -74,11 +82,6 @@ const generateId = () => {
     return Math.floor(Math.random() * 100000000)
 }
 
-morgan.token('postdetails',  (request, response) => { return (request.body.name + ' ' + request.body.number ) })
-
-app.use(
-    morgan(':postdetails :method :url :status :res[content-length] :response-time ms')
-);
 
 app.post('/api/persons',(request,response) => {
     const body = request.body
