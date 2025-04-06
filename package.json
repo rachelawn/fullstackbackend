@@ -11,7 +11,7 @@
     "dev": "node --watch index.js",
     "test": "echo \\\"Error: no test specified\\\" && exit 1",
     "build:ui": "rm -rf dist && cd ../../Sec2/phonebook && npm run build && cp -r dist ../../Sec3/phonebook",
-    "deploy:full": "npm run build:ui && git add . && git commit -m uibuild && git push"
+    "deploy:full": "npm run build:ui && git add . && git commit -m uibuild && git push origin master"
   },
   "dependencies": {
     "express": "^5.1.0",
