@@ -1,18 +1,47 @@
+require('dotenv').config()
 const express = require('express')
 const morgan = require('morgan') 
 const app = express()
-
+const Person = require('./models/person')
 morgan.token('postdetails',  (request, response) => { 
     const name = request.body?.name || 'unknown';
     const number = request.body?.number || 'unknown';
-    return `${name} ${number}`;
+    return name + ' ' + number;
   });
 
 app.use(
     morgan(':postdetails :method :url :status :res[content-length] :response-time ms')
 );
 
-let persons = [
+// adding mongoose backend
+//const mongoose = require('mongoose')
+
+// DO NOT SAVE YOUR PASSWORD TO GITHUB!!
+const password = process.argv[2]
+//const url = `mongodb+srv://rachelannwible:${password}@cluster0.pj1ms1h.mongodb.net/phonebookApp?retryWrites=true&w=majority&appName=Cluster0`
+
+//mongoose.set('strictQuery',false)
+//mongoose.connect(url)
+
+/*const personSchema = new mongoose.Schema({
+    name: String,
+    number: String,
+})
+
+personSchema.set('toJSON', {
+    transform: (document, returnedObject) => {
+      returnedObject.id = returnedObject._id.toString()
+      delete returnedObject._id
+      delete returnedObject.__v
+    }
+  })
+
+const Person = mongoose.model('Person', personSchema)
+// */
+
+
+let persons = []
+/*let persons = [
     { 
       "id": "1",
       "name": "Arto Hellas", 
@@ -33,7 +62,7 @@ let persons = [
       "name": "Mary Poppendieck", 
       "number": "39-23-6423122"
     }
-]
+]*/
 
 /*app.get('/', (request, response) => {
     response.send('<h1>Hello World!</h1>')
@@ -52,19 +81,23 @@ app.get('/info',(request,response)=> {
 app.use(express.static('dist'))
 app.use(express.json())
 
-app.get('/api/persons',(request,response) => {
+/*app.get('/api/persons',(request,response) => {
     response.json(persons)
+})*/
+
+app.get('/api/persons', (request, response) => {
+    Person.find({}).then(persons => {
+        response.json(persons)
+    })
 })
 
+
+
+
 app.get('/api/persons/:id', (request,response) => {
-    const id = request.params.id
-    const person = persons.find(person => person.id === id)
-    
-    if(person) {
-        response.json(person)
-    } else {
-        response.status(404).end()
-    }
+ Person.findById(request.params.id).then(person => {
+    response.json(person)
+    })
 })
 
 app.delete('/api/persons/:id', (request,response) => {
@@ -104,18 +137,22 @@ app.post('/api/persons',(request,response) => {
         })
     }
      
-     const person = {
+     const person = new Person ({
         name: body.name,
         number: body.number,
-        id: generateId(),
-     }
+        //id: generateId(),
+     })
 
-    persons = persons.concat(person)
+     person.save().then(savedPerson => {
+        response.json(savedPerson)
+      })
+
+    //persons = persons.concat(person)
     
-    response.json(person)
+    //response.json(person)
 })
 
-const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT //|| 3001
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 })
